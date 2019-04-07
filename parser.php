@@ -8,7 +8,6 @@ class       Parser
         function __construct($str)
         {
             $this->str = $str;
-            $this->array = ["left" => ["addition" => 0], "right" => ["addition" => 0]];
             $this->parse();
         }
 
@@ -20,35 +19,44 @@ class       Parser
             // $this->str = str_replace(" ", "", $this->str);
             $this->str = str_replace(" ", "", $this->str);
             $split = explode("=" , $this->str);
-            $this->parse_pol($split[0], "left");
+            $this->array["left"] = $this->parsePol($split[0]);
+            $this->array["right"] = $this->parsePol($split[1]);
+            $this->transformParsIntoPol($this->array["left"]);
         }
 
-        function    parse_pol($pol, $key)
+        function    transformParsIntoPol($array)
         {
-            if (preg_match("/[a-wy-zA-WY-Z]/", $pol))
+            $ret = ["pow0" => 0, "pow1" => 0, "pow2" => 0];
+            foreach ($array as $actArray)
+            {
+                echo $actArray . "\n";
+                if (($pos = stripos($actArray, "x")) === FALSE)
+                {
+                    $ret["pow0"] += intval($actArray);
+                }
+                else
+                {
+                    while ($pos < strlen($actArray) && is_numeric($actArray[++$pos]) === FALSE);
+                    if ($pos < strlen($actArray))
+                        $tmpXpow = intval(substr($actArray, $pos));
+                    else
+                        $tmpXpow = 1;
+                    if (is_numeric($actArray[0]) || ($actArray[0] == '+' || $actArray[0] == '-'))
+                        $mult = intval($actArray);
+                    else
+                        $mult = 1;
+                    echo "$tmpXpow => $mult\n";
+                    $ret["pow$tmpXpow"] += $mult;
+                }
+            }
+            var_dump($ret);
+        }
+
+        function    parsePol($pol)
+        {
+            if (preg_match("/[a-wy-zA-WY-Z]/", $pol)|| preg_match("/[[\^]{2}|[[\*]{2}|[[\-]{2}|[[\+]{2}|[[\/]{2}/", $pol))
                 echo "Nooooo";
-            preg_match_all("#([+-]?(?:(?:\d+\*?x\^\d+)|(?:\d+\*?x)|(?:\d+)|(?:x)))#iU", $pol, $array);
-            // var_dump($array);
-            // preg_match_all("#([+-]?(?:(?:\d+x\^\d+)|(?:\d+x)|(?:\d+)|(?:x)))#i", $pol, $array);
-            // $parse = explode("-", $pol);
-            // foreach ($parse as $key => $actParse)
-            // {
-            //     if (empty($actParse))
-            //         unset($parse[$key]);
-            //     else if ($key)
-            //         $parse[$key] = "-" . $actParse;
-            // }
-            // foreach ($parse as $key => $value)
-            // {
-            //     $parseAgain = explode("+", $value);
-            //     foreach ($parseAgain as $key => $actParse)
-            //     {
-            //         if (empty($actParse))
-            //             unset($parseAgain[$key]);
-            //         else
-            //             $operation[$key][] = $actParse;
-            //     }
-            // }
-            // var_dump($operation);
+            preg_match_all("#([+-]?(?:(?:\d+\*?x\^\d+)|(?:\d+\*?x)|(?:\d+)|(?:x)))#i", $pol, $array);
+            return ($array[0]);
         }
 }
