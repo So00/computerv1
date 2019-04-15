@@ -47,6 +47,9 @@ if ($argc >= 2)
     }
 }
 else
-    echo "Usage : \
-    php computerv1.php \"Your + Mathematic = stuff\"\n\
-    option :\n -f [fraction]\n -s [step by step]\n";
+    echo "Usage :
+  php computerv1.php \"Your + Mathematic = stuff\"
+
+option :
+  -f [fraction]
+  -s [step by step]\n";
