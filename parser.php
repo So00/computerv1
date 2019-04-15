@@ -3,25 +3,68 @@
 class       Parser
 {  
         public $str;
+        public $options;
         public $array;
 
-        function __construct($str)
+        function __construct($str, $options)
         {
             $this->str = $str;
+            $this->options = $options;
             $this->parse();
         }
 
         function parse()
         {
-            // $sign = ["+", "-", "*", "=", "/", "^", "X", "x"];
-            // foreach ($sign as $actSign)
-            //     $this->str = str_replace($actSign, " $actSign ", $this->str);
-            // $this->str = str_replace(" ", "", $this->str);
             $this->str = str_replace(" ", "", $this->str);
             $split = explode("=" , $this->str);
             $this->array["left"] = $this->parsePol($split[0]);
             $this->array["right"] = $this->parsePol($split[1]);
-            $this->transformParsIntoPol($this->array["left"]);
+            $this->array["left"] = $this->transformParsIntoPol($this->array["left"]);
+            $this->array["right"] = $this->transformParsIntoPol($this->array["right"]);
+            if (!empty($this->options["step"]))
+            {
+                echo "Detailled : \n";
+                $firstOnly = 1;
+                foreach ($this->array as $actArray)
+                {
+                    $start = 1;
+                    foreach ($actArray as $pow => $nb)
+                    {
+                        $pow = intval(substr($pow, 3));
+                        if ($pow > $maxDeg && $nb != 0)
+                            $maxDeg = $pow;
+                        if ($nb != 0)
+                            echo (!$start ? ($nb >= 0 ? "+ " : "- ") : "") . ($nb < 0 ? -$nb : $nb) .($pow != 0 ? " * X". ($pow == 2 ? "^$pow": "") : "") . " ";
+                        $start = 0;
+                    }
+                    if ($firstOnly)
+                        echo "= ";
+                    $firstOnly = 0;
+                }
+                echo "\n";
+            }
+            $this->mergeToZero();
+        }
+
+        function mergeToZero()
+        {
+            $this->array["left"]["pow0"] -= $this->array["right"]["pow0"];
+            $this->array["right"]["pow0"] = 0;
+            $this->array["left"]["pow1"] -= $this->array["right"]["pow1"];
+            $this->array["right"]["pow1"] = 0;
+            $this->array["left"]["pow2"] -= $this->array["right"]["pow2"];
+            $this->array["right"]["pow2"] = 0;
+            if ($this->array["left"]["pow2"] === 0 && $this->array["left"]["pow1"] === 0)
+            {
+                if ($this->array["left"]["pow0"] == 0)
+                    throw new Exception("All real numbers are solutions");
+                throw new Exception("No solution possible");
+            }
+        }
+
+        function    getData()
+        {
+            return ($this->array);
         }
 
         function    transformParsIntoPol($array)
@@ -29,34 +72,60 @@ class       Parser
             $ret = ["pow0" => 0, "pow1" => 0, "pow2" => 0];
             foreach ($array as $actArray)
             {
-                echo $actArray . "\n";
                 if (($pos = stripos($actArray, "x")) === FALSE)
                 {
                     $ret["pow0"] += intval($actArray);
                 }
                 else
                 {
-                    while ($pos < strlen($actArray) && is_numeric($actArray[++$pos]) === FALSE);
+                    while ($pos < strlen($actArray) && (is_numeric($actArray[++$pos]) === FALSE && $actArray[$pos] !== '-' && $actArray[$pos] !== '+'));
                     if ($pos < strlen($actArray))
                         $tmpXpow = intval(substr($actArray, $pos));
                     else
                         $tmpXpow = 1;
-                    if (is_numeric($actArray[0]) || ($actArray[0] == '+' || $actArray[0] == '-'))
+                    if ($actArray[0] == '+' || $actArray[0] == '-' || is_numeric($actArray[0]))
+                    {
+                        if (!is_numeric($actArray[0]) && !is_numeric($actArray[1]))
+                        {
+                            $actArray = str_replace(" ", "", $actArray);
+                            if ($actArray[1] == "x" || $actArray[1] == "X")
+                                $actArray = str_replace(["x", "X"], "1x", $actArray);
+                        }
                         $mult = intval($actArray);
+                    }
                     else
                         $mult = 1;
-                    echo "$tmpXpow => $mult\n";
+                    if ($tmpXpow > 2 || $tmpXpow < 0)
+                        throw new Exception("$tmpXpow is not valid for a second degres polynom");
                     $ret["pow$tmpXpow"] += $mult;
                 }
             }
-            var_dump($ret);
+            return ($ret);
         }
 
         function    parsePol($pol)
         {
-            if (preg_match("/[a-wy-zA-WY-Z]/", $pol)|| preg_match("/[[\^]{2}|[[\*]{2}|[[\-]{2}|[[\+]{2}|[[\/]{2}/", $pol))
-                echo "Nooooo";
-            preg_match_all("#([+-]?(?:(?:\d+\*?x\^\d+)|(?:\d+\*?x)|(?:\d+)|(?:x)))#i", $pol, $array);
+            if (preg_match("/[a-wy-zA-WY-Z.,]/", $pol)|| preg_match("/[[\^]{2}|[[\*]{2}|[[\-]{2}|[[\+]{2}|[[\/]{2}/", $pol))
+                throw new Exception("Not a valid polynom");
+            preg_match_all("#((?:((?:[+-]?(\d+)?\*?x(\^[+-]?\d+)?)|(?:[+-]?\d+))))#i", $pol, $array);
             return ($array[0]);
+        }
+
+        function reducedForm ()
+        {
+            $start = 1;
+            echo "Reduced form is : \n";
+            $maxDeg = 0;
+            foreach ($this->array["left"] as $pow => $nb)
+            {
+                $pow = intval(substr($pow, 3));
+                if ($pow > $maxDeg && $nb != 0)
+                    $maxDeg = $pow;
+                if ($nb != 0)
+                    echo (!$start ? ($nb >= 0 ? "+ " : "- ") : "") . ($nb < 0 ? -$nb : $nb) .($pow != 0 ? " * X". ($pow == 2 ? "^$pow": "") : "") . " ";
+                $start = 0;
+            }
+            echo " = 0\n";
+            echo "Max degree is $maxDeg \n";
         }
 }
