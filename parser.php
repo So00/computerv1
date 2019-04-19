@@ -33,8 +33,7 @@ class       Parser
                         $pow = intval(substr($pow, 3));
                         if ($pow > $maxDeg && $nb != 0)
                             $maxDeg = $pow;
-                        if ($nb != 0)
-                            echo (!$start ? ($nb >= 0 ? "+ " : "- ") : "") . ($nb < 0 ? -$nb : $nb) .($pow != 0 ? " * X". ($pow == 2 ? "^$pow": "") : "") . " ";
+                        echo (!$start ? ($nb >= 0 ? "+ " : "- ") : "") . ($nb < 0 ? -$nb : $nb) .($pow != 0 ? " * X". ($pow == 2 ? "^$pow": "") : "") . " ";
                         $start = 0;
                     }
                     if ($firstOnly)
@@ -105,7 +104,7 @@ class       Parser
 
         function    parsePol($pol)
         {
-            if (preg_match("/[a-wy-zA-WY-Z.,]/", $pol)|| preg_match("/[[\^]{2}|[[\*]{2}|[[\-]{2}|[[\+]{2}|[[\/]{2}/", $pol))
+            if (preg_match("/[a-wy-zA-WY-Z.,]/", $pol) || preg_match("/^((?![^\d^\+^\*^\%^\-^\=^\/^\^^x]).)*$/i", $pol) === 0)
                 throw new Exception("Not a valid polynom");
             preg_match_all("#((?:((?:[+-]?(\d+)?\*?x(\^[+-]?\d+)?)|(?:[+-]?\d+))))#i", $pol, $array);
             return ($array[0]);

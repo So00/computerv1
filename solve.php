@@ -54,7 +54,9 @@ class Solve
         }
         else
         {
-            if (is_int((- $this->array["left"]["pow1"] - $this->discriminant ** 0.5) / (2 * $this->array["left"]["pow2"])))
+            $value = (- $this->array["left"]["pow1"] - $this->discriminant ** 0.5) / (2 * $this->array["left"]["pow2"]);
+            $valueInt = intval($value);
+            if ($value == $valueInt)
                 $this->firstSolution = (- $this->array["left"]["pow1"] - $this->discriminant ** 0.5) / (2 * $this->array["left"]["pow2"]);
             else
             {
@@ -63,8 +65,10 @@ class Solve
                 else
                     $this->firstSolution = "(".(- $this->array["left"]["pow1"])." - √{$this->discriminant}) / " . (2 * $this->array["left"]["pow2"]);
             }
-            if (is_int((- $this->array["left"]["pow1"] + $this->discriminant ** 0.5) / (2 * $this->array["left"]["pow2"])))
-                $this->secondSolution = -(- $this->array["left"]["pow1"] + $this->discriminant ** 0.5) / (2 * $this->array["left"]["pow2"]);
+            $value = (- $this->array["left"]["pow1"] + $this->discriminant ** 0.5) / (2 * $this->array["left"]["pow2"]);
+            $valueInt = intval($value);
+            if ($value == $valueInt)
+                $this->secondSolution = (- $this->array["left"]["pow1"] + $this->discriminant ** 0.5) / (2 * $this->array["left"]["pow2"]);
             else
             {
                 if (is_int($this->discriminant ** 0.5))
