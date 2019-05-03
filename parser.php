@@ -83,6 +83,11 @@ class       Parser
                         $actArray = str_replace(substr($actArray, 0, $xPos), substr($actArray, 0, $xPos - 1), $actArray);
                         $xPos -= 1;
                     }
+                    if ($xPos == 1 && ($actArray[$xPos - 1] === "+" || $actArray[$xPos - 1] === "-"))
+                    {
+                        $actArray = str_replace(substr($actArray, 0, $xPos), substr($actArray, 0, $xPos) . "1", $actArray);
+                        $xPos += 1;
+                    }
                     if ($xPos !== 0 && !is_numeric(substr($actArray, 0, $xPos)))
                         throw new Exception("Non numeric value on " . $actArray);
                     if ($xPos === 0)
@@ -90,7 +95,7 @@ class       Parser
                     else
                         $mult = floatval(substr($actArray, 0, $xPos));
                     $powPos = stripos($actArray, "^");
-                    if (strcasecmp($actArray[$powPos - 1],"x"))
+                    if ($powPos && strcasecmp($actArray[$powPos - 1],"x"))
                         throw new Exception("You must have x before your power sign ^");
                     if ($powPos !== false)
                     {
@@ -114,8 +119,7 @@ class       Parser
         {
             if (preg_match("/[a-wy-zA-WY-Z,]/", $pol) || preg_match("/([^\d\/\*\.\^x\+-])/i", $pol))
                 throw new Exception("Not a valid polynom");
-            // preg_match_all("/(([+-]?([+-]?(\.?\d+(\.\d+)?)?\*?x\^?(\.?\d+(\.\d+)?)?)|([+-]?\.?\d+(\.\d+)?)))/i", $pol, $array);
-            preg_match_all("/(([+-]?([+-]?(\.?\d+(\.\d+)?)?\*?x\^?(\.?\d+(\.\d+)?)?)|([+-]?\.?\d+(\.\d+)?)))/i", $pol, $array);
+            preg_match_all("/(([+\-*]*([+\-*]*(\.?\d+(\.[\d\.]+)?)?\*?x\^?(\.?\d+(\.[\d\.]+)?)?)|([+\-*]*\.?\d+(\.[\d\.]+)?)))/i", $pol, $array);
             return ($array[0]);
         }
 
