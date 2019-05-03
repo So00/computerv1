@@ -69,32 +69,39 @@ class       Parser
 
         function    transformParsIntoPol($array)
         {
-            $ret = ["pow0" => 0, "pow1" => 0, "pow2" => 0];
+            $ret = ["pow2" => 0, "pow1" => 0, "pow0" => 0];
             foreach ($array as $actArray)
             {
-                if (($pos = stripos($actArray, "x")) === FALSE)
+                if (($xPos = stripos($actArray, "x")) === FALSE)
                 {
                     $ret["pow0"] += floatval($actArray);
                 }
                 else
                 {
-                    while ($pos < strlen($actArray) && (is_numeric($actArray[++$pos]) === FALSE && $actArray[$pos] !== '-' && $actArray[$pos] !== '+'));
-                    if ($pos < strlen($actArray))
-                        $tmpXpow = floatval(substr($actArray, $pos));
-                    else
-                        $tmpXpow = 1;
-                    if ($actArray[0] == '+' || $actArray[0] == '-' || is_numeric($actArray[0]))
+                    if ($xPos > 1 && $actArray[$xPos - 1] == "*")
                     {
-                        if (!is_numeric($actArray[0]) && !is_numeric($actArray[1]))
-                        {
-                            $actArray = str_replace(" ", "", $actArray);
-                            if ($actArray[1] == "x" || $actArray[1] == "X")
-                                $actArray = str_replace(["x", "X"], "1x", $actArray);
-                        }
-                        $mult = floatval($actArray);
+                        $actArray = str_replace(substr($actArray, 0, $xPos), substr($actArray, 0, $xPos - 1), $actArray);
+                        $xPos -= 1;
+                    }
+                    if ($xPos !== 0 && !is_numeric(substr($actArray, 0, $xPos)))
+                        throw new Exception("Non numeric value on " . $actArray);
+                    if ($xPos === 0)
+                        $mult = 1;
+                    else
+                        $mult = floatval(substr($actArray, 0, $xPos));
+                    $powPos = stripos($actArray, "^");
+                    if (strcasecmp($actArray[$powPos - 1],"x"))
+                        throw new Exception("You must have x before your power sign ^");
+                    if ($powPos !== false)
+                    {
+                        if ($powPos === strlen($actArray) - 1)
+                            throw new Exception("Put a numeric value after ^, please");
+                        if (!is_numeric(substr($actArray, $powPos + 1 - strlen($actArray))))
+                            throw new Exception(substr($actArray, $powPos + 1 - strlen($actArray)) . " is not a numeric value");
+                        $tmpXpow = floatval(substr($actArray, $powPos + 1 - strlen($actArray)));
                     }
                     else
-                        $mult = 1;
+                        $tmpXpow = 1;
                     if ($tmpXpow > 2 || $tmpXpow < 0 || intval($tmpXpow) != $tmpXpow)
                         throw new Exception("$tmpXpow is not valid for a second degres polynom");
                     $ret["pow$tmpXpow"] += $mult;
@@ -105,11 +112,10 @@ class       Parser
 
         function    parsePol($pol)
         {
-            //Previous condition
-            // || preg_match("/^[+-]?((([+-]?(\d+(\.\d+)?)?\*?x(\^\d+(\.\d+)?)?)*|([+-]?\d+(\.\d+)?)*))/i", $pol) === 0
             if (preg_match("/[a-wy-zA-WY-Z,]/", $pol) || preg_match("/([^\d\/\*\.\^x\+-])/i", $pol))
                 throw new Exception("Not a valid polynom");
-            preg_match_all("/(([+-]?([+-]?(\d+(\.\d+)?)?\*?x(\^\d+(\.\d+)?)?)|([+-]?\d+(\.\d+)?)))/i", $pol, $array);
+            // preg_match_all("/(([+-]?([+-]?(\.?\d+(\.\d+)?)?\*?x\^?(\.?\d+(\.\d+)?)?)|([+-]?\.?\d+(\.\d+)?)))/i", $pol, $array);
+            preg_match_all("/(([+-]?([+-]?(\.?\d+(\.\d+)?)?\*?x\^?(\.?\d+(\.\d+)?)?)|([+-]?\.?\d+(\.\d+)?)))/i", $pol, $array);
             return ($array[0]);
         }
 
