@@ -21,6 +21,7 @@ class       Parser
             $this->array["right"] = $this->parsePol($split[1]);
             $this->array["left"] = $this->transformParsIntoPol($this->array["left"]);
             $this->array["right"] = $this->transformParsIntoPol($this->array["right"]);
+            $maxDeg = 0;
             if (!empty($this->options["step"]))
             {
                 echo "Detailled : \n";
@@ -73,13 +74,13 @@ class       Parser
             {
                 if (($pos = stripos($actArray, "x")) === FALSE)
                 {
-                    $ret["pow0"] += intval($actArray);
+                    $ret["pow0"] += floatval($actArray);
                 }
                 else
                 {
                     while ($pos < strlen($actArray) && (is_numeric($actArray[++$pos]) === FALSE && $actArray[$pos] !== '-' && $actArray[$pos] !== '+'));
                     if ($pos < strlen($actArray))
-                        $tmpXpow = intval(substr($actArray, $pos));
+                        $tmpXpow = floatval(substr($actArray, $pos));
                     else
                         $tmpXpow = 1;
                     if ($actArray[0] == '+' || $actArray[0] == '-' || is_numeric($actArray[0]))
@@ -90,11 +91,11 @@ class       Parser
                             if ($actArray[1] == "x" || $actArray[1] == "X")
                                 $actArray = str_replace(["x", "X"], "1x", $actArray);
                         }
-                        $mult = intval($actArray);
+                        $mult = floatval($actArray);
                     }
                     else
                         $mult = 1;
-                    if ($tmpXpow > 2 || $tmpXpow < 0)
+                    if ($tmpXpow > 2 || $tmpXpow < 0 || intval($tmpXpow) != $tmpXpow)
                         throw new Exception("$tmpXpow is not valid for a second degres polynom");
                     $ret["pow$tmpXpow"] += $mult;
                 }
@@ -104,9 +105,11 @@ class       Parser
 
         function    parsePol($pol)
         {
-            if (preg_match("/[a-wy-zA-WY-Z.,]/", $pol) || preg_match("/^((?![^\d^\+^\*^\%^\-^\=^\/^\^^x]).)*$/i", $pol) === 0)
+            //Previous condition
+            // || preg_match("/^[+-]?((([+-]?(\d+(\.\d+)?)?\*?x(\^\d+(\.\d+)?)?)*|([+-]?\d+(\.\d+)?)*))/i", $pol) === 0
+            if (preg_match("/[a-wy-zA-WY-Z,]/", $pol) || preg_match("/([^\d\/\*\.\^x\+-])/i", $pol))
                 throw new Exception("Not a valid polynom");
-            preg_match_all("#((?:((?:[+-]?(\d+)?\*?x(\^[+-]?\d+)?)|(?:[+-]?\d+))))#i", $pol, $array);
+            preg_match_all("/(([+-]?([+-]?(\d+(\.\d+)?)?\*?x(\^\d+(\.\d+)?)?)|([+-]?\d+(\.\d+)?)))/i", $pol, $array);
             return ($array[0]);
         }
 
@@ -121,7 +124,7 @@ class       Parser
                 if ($pow > $maxDeg && $nb != 0)
                     $maxDeg = $pow;
                 if ($nb != 0)
-                    echo (!$start ? ($nb >= 0 ? "+ " : "- ") : "") . ($nb < 0 ? -$nb : $nb) .($pow != 0 ? " * X". ($pow == 2 ? "^$pow": "") : "") . " ";
+                    echo ($nb < 0 ? "- " : ($start ?  "" : "+ ")) . ($nb < 0 ? -$nb : $nb) .($pow != 0 ? " * X". ($pow == 2 ? "^$pow": "") : "") . " ";
                 $start = 0;
             }
             echo " = 0\n";
