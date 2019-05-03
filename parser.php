@@ -134,10 +134,12 @@ class       Parser
                 if ($pow > $maxDeg && $nb != 0)
                     $maxDeg = $pow;
                 if ($nb != 0)
+                {
                     echo ($nb < 0 ? "- " : ($start ?  "" : "+ ")) . ($nb < 0 ? -$nb : $nb) .($pow != 0 ? " * X". ($pow == 2 ? "^$pow": "") : "") . " ";
-                $start = 0;
+                    $start = 0;
+                }
             }
-            echo " = 0\n";
+            echo "= 0\n";
             echo "Max degree is $maxDeg \n";
         }
 }
